@@ -1,3 +1,8 @@
+*
+!/**/
+!*.*
+!Makefile
+
 # Object files
 *.o
 *.ko
@@ -28,5 +33,7 @@
 *.x86_64
 *.hex
 
+
 # Debug files
 *.dSYM/
+
