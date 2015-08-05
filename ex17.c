@@ -4,6 +4,9 @@
 #include <errno.h>
 #include <string.h>
 
+#define MAX_DATA 512
+#define MAX_ROWS 100
+
 struct Address {
   int id;
   int set;
@@ -12,8 +15,6 @@ struct Address {
 };
 
 struct Database {
-  const int MAX_DATA = 512;
-  const int MAX_ROWS = 100;
   struct Address rows[MAX_ROWS];
 };
 
