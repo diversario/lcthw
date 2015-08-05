@@ -7,14 +7,14 @@
 struct Address {
   int id;
   int set;
-  char name[MAX_DATA];
-  char email[MAX_DATA];
+  char *name;
+  char *email;
 };
 
 struct Database {
-  const int MAX_DATA = 512;
-  const int MAX_ROWS = 100;
-  struct Address rows[MAX_ROWS];
+  int max_data;
+  int max_rows;
+  struct Address *rows;
 };
 
 struct Connection {
@@ -37,7 +37,7 @@ void die(const char *messages, struct Connection *conn) {
 }
 
 void Address_print(struct Address *addr) {
-  printf("%d %s %s\n", addr->id, addr->name, addr->email);
+  printf("%d %s %s\n", addr->id, *addr->name, *addr->email);
 }
 
 void Database_load(struct Connection *conn) {
@@ -48,7 +48,7 @@ void Database_load(struct Connection *conn) {
   }
 }
 
-struct Connection *Database_open(const char *filename, char mode) {
+struct Connection *Database_open(const char *filename, char mode, int max_data, int max_rows) {
   struct Connection *conn = malloc(sizeof(struct Connection));
   if (!conn) die("Memory error", conn);
 
@@ -59,7 +59,7 @@ struct Connection *Database_open(const char *filename, char mode) {
     conn->file = fopen(filename, "w");
   } else {
     conn->file = fopen(filename, "r+");
-    
+
     if (conn->file) {
       Database_load(conn);
     }
@@ -100,8 +100,7 @@ void Database_set(struct Connection *conn, int id, const char *name, const char 
   if (addr->set) die("Already set, delete it first", conn);
 
   addr->set = 1;
-  
-  // WARNING: bug, read the "How To Break It" and fix this
+
   char *res = strncpy(addr->name, name, MAX_DATA);
   addr->name[sizeof(addr->name) - 1] = '\0';
   if (!res) die("Name copy failed", conn);
@@ -137,14 +136,17 @@ void Database_list(struct Connection *conn) {
 }
 
 int main (int argc, char *argv[]) {
-  if (argc < 3) die("USAGE: ex17 <dbfile> <action> [action params]", NULL);
+  if (argc < 5) die("USAGE: ex17 <max data> <max rows> <dbfile> <action> [action params]", NULL);
 
-  char *filename = argv[1];
-  char action = argv[2][0];
-  struct Connection *conn = Database_open(filename, action);
+  int max_data = argv[1];
+  int max_rows = argv[2];
+
+  char *filename = argv[3];
+  char action = argv[4][0];
+  struct Connection *conn = Database_open(filename, action, max_data, max_rows);
   int id = 0;
 
-  if (argc > 3) id = atoi(argv[3]);
+  if (argc > 3) id = atoi(argv[5]);
   if (id >= MAX_ROWS) die("There's not that many records.", conn);
 
   switch(action) {
@@ -159,7 +161,7 @@ int main (int argc, char *argv[]) {
     case 's':
       if(argc != 6) die("Need id, name, email to set", conn);
 
-      Database_set(conn, id, argv[4], argv[5]);
+      Database_set(conn, id, argv[6], argv[7]);
       Database_write(conn);
       break;
     case 'd':
